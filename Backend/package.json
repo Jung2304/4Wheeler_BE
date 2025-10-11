@@ -1,0 +1,32 @@
+{
+  "name": "backend",
+  "version": "1.0.0",
+  "description": "Car Dealership - 4Wheeler",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon --inspect index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  },
+  "dependencies": {
+    "body-parser": "^2.2.0",
+    "cloudinary": "^2.7.0",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "express-flash": "^0.0.2",
+    "express-session": "^1.18.2",
+    "method-override": "^3.0.0",
+    "mongodb": "^6.20.0",
+    "mongoose": "^8.19.1",
+    "mongoose-slug-updater": "^3.3.0",
+    "multer": "^2.0.2",
+    "pug": "^3.0.3",
+    "streamifier": "^0.1.1",
+    "tinymce": "^6.7.3"
+  }
+}
