@@ -7,7 +7,6 @@ require("dotenv").config();     // cài package dotenv và require như này đ�
 //! CONFIG
 const properties = require("./src/config/properties.js");     // cài các biến hệ thống thành biến toàn cục
 const database = require("./src/config/database.js");
-// const apiRoutes = require("./src/config/api.routes.js"); 
 
 //! APP
 const app = express();  
@@ -26,7 +25,3 @@ app.listen(port, () => {
 
 //! DATABASE
 database.connect();       // kết nối database 
-
-//! ROUTES
-// app.use("/api", apiRoutes);             // Mount all API routes under /api
-
