@@ -2,11 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
-require("dotenv").config();     // cài package dotenv và require như này để dùng các hằng trong file .env
+const swaggerDocs = require("./src/swagger.js");
+const routes = require("./src/api/routes/index.route.js");
+
+require("dotenv").config();     
 
 //! CONFIG
-const properties = require("./src/config/properties.js");     // cài các biến hệ thống thành biến toàn cục
-const database = require("./src/config/database.js");
+const properties = require("./src/api/config/properties.js");     // cài các biến hệ thống thành biến toàn cục
+const database = require("./src/api/config/database.js");
 
 //! APP
 const app = express();  
@@ -25,3 +28,9 @@ app.listen(port, () => {
 
 //! DATABASE
 database.connect();       // kết nối database 
+
+//! ROUTES
+routes(app);   
+
+//! SWAGGER SETUP
+swaggerDocs(app);
