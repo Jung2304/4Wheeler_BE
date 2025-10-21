@@ -51,13 +51,18 @@ module.exports.login = async (req, res, next) => {
       const validPassword = bcryptjs.compareSync(password, validUser.password);
       
       if (!validPassword) {
-        return next(errorHandler(401, "Wrong credentials!"));
+        return next(errorHandler(401, "Invalid credentials!"));
       } 
       else {
         const { password: pass, ...rest } = validUser._doc;
+        
         const payload = { id: validUser._id, username: validUser.username };
         const token = jwt.sign(payload, process.env.JWT_SECRET);
-        res.cookie("access_token", token, { httpOnly: true }).status(200).json(rest);
+        res.cookie("token", token, { 
+          httpOnly: true,                   // Hide cookie from JS
+          secure: process.env.NODE_ENV === "production",            // Only HTTPS sends cookies
+          sameSite: "strict",                   // Block cross-site cookie sending
+        }).status(200).json(rest);
       }
     }
   } catch (error) {
