@@ -2,6 +2,7 @@ const User = require("../models/users.model.js");
 const bcryptjs = require("bcryptjs");
 const { errorHandler } = require("../utils/error.js");
 const jwt = require("jsonwebtoken");
+const generate = require("../helpers/generate.js");
 
 //< [POST] /api/auth/users/register
 module.exports.register = async (req, res, next) => {
@@ -17,8 +18,8 @@ module.exports.register = async (req, res, next) => {
       const field = existingUser.username === username ? "Username" : "Email";
       return res.status(400).json({ message: `${field} already exists!` });
     } else {
-      const hashedPassowrd = bcryptjs.hashSync(password, 10);
-      const newUser = new User({ username, email, password: hashedPassowrd });
+      const hashedPassword = bcryptjs.hashSync(password, 10);
+      const newUser = new User({ username, email, password: hashedPassword });
   
       await newUser.save();
       
@@ -64,6 +65,48 @@ module.exports.login = async (req, res, next) => {
           sameSite: "strict",                   // Block cross-site cookie sending
         }).status(200).json(rest);
       }
+    }
+  } catch (error) {
+    console.error(error);
+  }
+};
+
+//< [POST] /api/auth/google
+module.exports.google = async (req, res, next) => {
+  try {
+    const user = await User.findOne({ email: req.body.email });
+
+    if (user) {
+      const payload = { id: user._id, username: user.username };
+      const token = jwt.sign(payload, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = user._doc;
+      res.cookie("token", token, { 
+        httpOnly: true,                   
+        secure: process.env.NODE_ENV === "production",            
+        sameSite: "strict",                   
+      }).status(200).json(rest);
+    }
+    else {
+      // Since in User model, password is required, so we generate a password for newly-created User (can be changed later by user)
+      const generatedPassword = generate.generateRandomString(16);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+      
+      //> When saved, we need to make that username unique and no spacing
+      const newUser = new User({ 
+        username: req.body.name.split(" ").join("").toLowerCase() + generate.generateRandomString(7), 
+        email: req.body.email, 
+        password: hashedPassword,
+        avatar: req.body.photo, 
+      });
+      await newUser.save();
+      const payload = { id: newUser._id, username: newUser.username };
+      const token = jwt.sign(payload, process.env.JWT_SECRET);
+      const { password: pass, ...rest } = user._doc;
+      res.cookie("token", token, { 
+        httpOnly: true,                   
+        secure: process.env.NODE_ENV === "production",            
+        sameSite: "strict",                   
+      }).status(200).json(rest);
     }
   } catch (error) {
     console.error(error);

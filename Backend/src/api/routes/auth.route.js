@@ -89,4 +89,8 @@ router.post("/users/register", controller.register);
 router.post("/users/login", controller.login);
 
 
+
+router.post("/google", controller.google)
+
+
 module.exports = router;
