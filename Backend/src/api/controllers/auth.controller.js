@@ -1,8 +1,8 @@
 const User = require("../models/users.model.js");
 const bcryptjs = require("bcryptjs");
 const { errorHandler } = require("../utils/error.js");
-const jwt = require("jsonwebtoken");
-const generate = require("../helpers/generate.js");
+const generate = require("../helpers/generateRandom.js");
+const { generateJWT } = require("../helpers/generateJWT.js");
 
 //< [POST] /api/auth/users/register
 module.exports.register = async (req, res, next) => {
@@ -57,9 +57,7 @@ module.exports.login = async (req, res, next) => {
       else {
         const { password: pass, ...rest } = validUser._doc;
         
-        const payload = { id: validUser._id, username: validUser.username };
-        const token = jwt.sign(payload, process.env.JWT_SECRET);
-        res.cookie("token", token, { 
+        res.cookie("token", generateJWT(validUser), { 
           httpOnly: true,                   // Hide cookie from JS
           secure: process.env.NODE_ENV === "production",            // Only HTTPS sends cookies
           sameSite: "strict",                   // Block cross-site cookie sending
@@ -72,15 +70,13 @@ module.exports.login = async (req, res, next) => {
 };
 
 //< [POST] /api/auth/google
-module.exports.google = async (req, res, next) => {
+module.exports.google = async (req, res) => {
   try {
     const user = await User.findOne({ email: req.body.email });
 
     if (user) {
-      const payload = { id: user._id, username: user.username };
-      const token = jwt.sign(payload, process.env.JWT_SECRET);
       const { password: pass, ...rest } = user._doc;
-      res.cookie("token", token, { 
+      res.cookie("token", generateJWT(user), { 
         httpOnly: true,                   
         secure: process.env.NODE_ENV === "production",            
         sameSite: "strict",                   
@@ -99,10 +95,9 @@ module.exports.google = async (req, res, next) => {
         avatar: req.body.photo, 
       });
       await newUser.save();
-      const payload = { id: newUser._id, username: newUser.username };
-      const token = jwt.sign(payload, process.env.JWT_SECRET);
+
       const { password: pass, ...rest } = user._doc;
-      res.cookie("token", token, { 
+      res.cookie("token", generateJWT(newUser), { 
         httpOnly: true,                   
         secure: process.env.NODE_ENV === "production",            
         sameSite: "strict",                   
