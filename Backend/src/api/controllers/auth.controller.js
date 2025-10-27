@@ -1,11 +1,18 @@
-const User = require("../models/users.model.js");
+//! PACKAGES
 const bcryptjs = require("bcryptjs");
+
+//! HELPERS
 const { errorHandler } = require("../utils/error.js");
 const generate = require("../helpers/generateRandom.js");
 const { generateJWT } = require("../helpers/generateJWT.js");
+const sendMailHelper = require("../helpers/sendMail.js");
+
+//! MODELS
+const User = require("../models/users.model.js");
+const ForgotPassword = require("../models/forgot-password.model.js");
 
 //< [POST] /api/auth/users/register
-module.exports.register = async (req, res, next) => {
+module.exports.register = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
@@ -23,9 +30,7 @@ module.exports.register = async (req, res, next) => {
   
       await newUser.save();
       
-      return res.status(201).json({ 
-        message: "User created successfully!", 
-      });
+      return res.status(201).json({ message: "User created successfully!" });
     }
   } catch (error) {
     console.error(error);
@@ -34,7 +39,7 @@ module.exports.register = async (req, res, next) => {
       return res.status(400).json({ message: "Email or username already exists!" });
     }
     
-    return res.status(500).json({ message: "Signup failed", error: error.message }); 
+    return res.status(500).json({ message: "Sign-up failed", error: error.message }); 
   }
 };
 
@@ -46,13 +51,13 @@ module.exports.login = async (req, res, next) => {
     const validUser = await User.findOne({ email });
     
     if (!validUser) {
-      return next(errorHandler(404, "User not found!"));
+      return res.status(404).json({ message: "User not found!" });
     } 
     else {
       const validPassword = bcryptjs.compareSync(password, validUser.password);
       
       if (!validPassword) {
-        return next(errorHandler(401, "Invalid credentials!"));
+        return res.status(401).json({ message: "Invalid credentials!" });
       } 
       else {
         const { password: pass, ...rest } = validUser._doc;
@@ -106,4 +111,42 @@ module.exports.google = async (req, res) => {
   } catch (error) {
     console.error(error);
   }
+};
+
+//< [POST] /api/auth/users/forgot-password
+module.exports.forgotPassword = async (req, res, next) => {
+  const email = req.body.email;
+
+  const user = await User.findOne({ 
+    email: email,
+    deleted: false, 
+  });
+
+  if (!user) {
+    return res.status(400).json({ message: "Email does not exist!" });    
+  };
+
+  //> Save data to database
+  const otp = generate.generateRandomNumber(6);
+
+  const minutesExpire = 5;
+
+  const objectForgotPassword = {
+    email: email,
+    otp: otp,
+    expireAt: Date.now() + minutesExpire * 60,
+  };
+
+  const forgotPassword = new ForgotPassword(objectForgotPassword);
+  await forgotPassword.save();
+
+  //> Send OTP through email
+  const subject = "Mã OTP xác minh lấy lại mật khẩu";
+  const html = `
+    Mã OTP để lấy lại mật khẩu của bạn là <b>${otp}</b> (Có hiệu lực trong vòng <b>${minutesExpire}</b> phút).
+    Vui lòng không chia sẻ mã OTP này với bất kỳ ai.
+  `
+  sendMailHelper.sendMail(email, subject, html);
+
+  return res.status(200).json({ message: "OTP code sent via email!" });   
 };
