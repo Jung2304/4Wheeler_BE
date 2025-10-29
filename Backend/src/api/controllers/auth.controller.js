@@ -1,8 +1,8 @@
 //! PACKAGES
 const bcryptjs = require("bcryptjs");
+const validator = require("validator");
 
 //! HELPERS
-const { errorHandler } = require("../utils/error.js");
 const generate = require("../helpers/generateRandom.js");
 const { generateJWT } = require("../helpers/generateJWT.js");
 const sendMailHelper = require("../helpers/sendMail.js");
@@ -44,25 +44,25 @@ module.exports.register = async (req, res) => {
 };
 
 //< [POST] /api/auth/users/login
-module.exports.login = async (req, res, next) => {
+module.exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
     const validUser = await User.findOne({ email });
     
     if (!validUser) {
-      return res.status(404).json({ message: "User not found!" });
+      return res.status(404).json({ message: "Email not found!" }); 
     } 
     else {
       const validPassword = bcryptjs.compareSync(password, validUser.password);
       
       if (!validPassword) {
-        return res.status(401).json({ message: "Invalid credentials!" });
+        return res.status(401).json({ message: "Email or password is incorrect!" });
       } 
       else {
         const { password: pass, ...rest } = validUser._doc;
         
-        res.cookie("token", generateJWT(validUser), { 
+        res.cookie("access_token", generateJWT(validUser), { 
           httpOnly: true,                   // Hide cookie from JS
           secure: process.env.NODE_ENV === "production",            // Only HTTPS sends cookies
           sameSite: "strict",                   // Block cross-site cookie sending
@@ -71,6 +71,7 @@ module.exports.login = async (req, res, next) => {
     }
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ message: "Server error while logging in!" });
   }
 };
 
@@ -81,7 +82,7 @@ module.exports.google = async (req, res) => {
 
     if (user) {
       const { password: pass, ...rest } = user._doc;
-      res.cookie("token", generateJWT(user), { 
+      res.cookie("access_token", generateJWT(user), { 
         httpOnly: true,                   
         secure: process.env.NODE_ENV === "production",            
         sameSite: "strict",                   
@@ -101,8 +102,8 @@ module.exports.google = async (req, res) => {
       });
       await newUser.save();
 
-      const { password: pass, ...rest } = user._doc;
-      res.cookie("token", generateJWT(newUser), { 
+      const { password: pass, ...rest } = newUser._doc;
+      res.cookie("access_token", generateJWT(newUser), { 
         httpOnly: true,                   
         secure: process.env.NODE_ENV === "production",            
         sameSite: "strict",                   
@@ -110,43 +111,88 @@ module.exports.google = async (req, res) => {
     }
   } catch (error) {
     console.error(error);
+    return res.status(500).json({ message: "Server error while logging in with Google!" });
   }
 };
 
 //< [POST] /api/auth/users/forgot-password
-module.exports.forgotPassword = async (req, res, next) => {
-  const email = req.body.email;
+module.exports.forgotPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
 
-  const user = await User.findOne({ 
-    email: email,
-    deleted: false, 
-  });
+    if (!email || !validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid or missing email format!" });
+    }   
 
-  if (!user) {
-    return res.status(400).json({ message: "Email does not exist!" });    
-  };
+    const user = await User.findOne({ 
+      email: email,
+      deleted: false, 
+    });
 
-  //> Save data to database
-  const otp = generate.generateRandomNumber(6);
+    if (!user) {
+      return res.status(404).json({ message: "Email not found!" });    
+    };
 
-  const minutesExpire = 5;
+    //> Save data to database
+    const otp = generate.generateRandomNumber(6);
 
-  const objectForgotPassword = {
-    email: email,
-    otp: otp,
-    expireAt: Date.now() + minutesExpire * 60,
-  };
+    const minutesExpire = 5;
 
-  const forgotPassword = new ForgotPassword(objectForgotPassword);
-  await forgotPassword.save();
+    const objectForgotPassword = {
+      email: email,
+      otp: otp,
+      expireAt: Date.now() + minutesExpire * 60,
+    };
 
-  //> Send OTP through email
-  const subject = "Mã OTP xác minh lấy lại mật khẩu";
-  const html = `
-    Mã OTP để lấy lại mật khẩu của bạn là <b>${otp}</b> (Có hiệu lực trong vòng <b>${minutesExpire}</b> phút).
-    Vui lòng không chia sẻ mã OTP này với bất kỳ ai.
-  `
-  sendMailHelper.sendMail(email, subject, html);
+    const forgotPassword = new ForgotPassword(objectForgotPassword);
+    await forgotPassword.save();
 
-  return res.status(200).json({ message: "OTP code sent via email!" });   
+    //> Send OTP through email
+    const subject = "OTP code to verify password recovery";
+    const html = `
+      The OTP code to retrieve your password is: <b>${otp}</b> (Valid for a period of <b>${minutesExpire}</b> minutes).
+      Please do not share this OTP code with anyone.
+    `
+    sendMailHelper.sendMail(email, subject, html);
+
+    return res.status(200).json({ message: "OTP code sent via email!" });  
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error while generating or sending OTP!" });
+  }
+};
+
+//< [POST] /api/auth/users/otp-password
+module.exports.otpPassword = async (req, res) => {
+  try {
+    const { email, otp } = req.body;
+
+    const record = await ForgotPassword.findOne({ email, otp });
+
+    if (!record) {
+      return res.status(401).json({ message: "Invalid or expired OTP code!" });
+    }
+    else {
+      const user = await User.findOne({ email });
+
+      if (!user) {
+        return res.status(404).json({ message: "User not found!" });
+      }
+
+      const { password: pass, ...rest } = user._doc;
+      res.cookie("access_token", generateJWT(user), { 
+        httpOnly: true,                   
+        secure: process.env.NODE_ENV === "production",            
+        sameSite: "strict",                   
+      })
+      .status(200)
+      .json({ 
+        message: "OTP verified successfully!",
+        user: { id: user._id, email: user.email },
+      });
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error while verifying OTP code!" });
+  }
 };
