@@ -2,14 +2,14 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
-const swaggerDocs = require("./src/swagger.js");
 const cookieParser = require("cookie-parser");
 const routes = require("./src/api/routes/index.route.js");
+const { swaggerDocs } = require("./src/swagger.js");
 
 require("dotenv").config();     
 
 //! CONFIG
-const properties = require("./src/api/config/properties.js");     // cài các biến hệ thống thành biến toàn cục
+const properties = require("./src/api/config/properties.js");     
 const database = require("./src/api/config/database.js");
 
 //! APP
@@ -35,4 +35,4 @@ database.connect();       // kết nối database
 routes(app);   
 
 //! SWAGGER SETUP
-swaggerDocs(app);
+swaggerDocs(app);      

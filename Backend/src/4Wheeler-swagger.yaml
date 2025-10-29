@@ -1,0 +1,513 @@
+openapi: 3.0.0
+info:
+  title: 4Wheeler API Documentation
+  version: 1.0.0
+  description: |-
+    API documentation for the 4Wheeler Website.
+    This project provides the backend services for managing vehicles for a car dealership, 
+    helping customers to have a better look before deciding to go to the store and make a purchase.
+    The application offers features such as user authentication, search and sort based on criteria functionality, and real-time chat with the store.
+    The application is built with scalability, security, and modern REST API design principles in mind.
+    Some useful links:
+    - [The 4Wheeler_BE repository](https://github.com/Jung2304/4Wheeler_BE)
+    - [The source API documentation for the 4Wheeler]()
+  contact:
+    email: 23520333@gm.uit.edu.vn
+servers:
+  - url: http://localhost:4000
+    description: Local server
+tags:
+  - name: auth
+    description: Authentication endpoints for user registration, login, and Google OAuth
+
+paths:
+  /api/auth/users/register:
+    post:
+      tags:
+        - auth
+      summary: Register a new user
+      operationId: registerUser
+      requestBody:
+        description: Creates a new user account with a unique username, email, and password.
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterBody'
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: User registered successfully
+        '400':
+          description: Username or email already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      username:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "test_username"
+                          msg:
+                            type: string
+                            example: "Username already exists"
+                          path:
+                            type: string
+                            example: "username"
+                          location:
+                            type: string
+                            example: "body"
+                      email:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "test@gmail.com"
+                          msg:
+                            type: string
+                            example: "Email already exists"
+                          path:
+                            type: string
+                            example: "email"
+                          location:
+                            type: string
+                            example: "body"
+        '500':
+          description: Registration failed due to server error
+      security: []
+
+  /api/auth/users/login:
+    post:
+      tags:
+        - auth
+      summary: Log in a user
+      operationId: loginUser
+      requestBody:
+        description: The user login credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginBody'
+      responses:
+        '200':
+          description: Login successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successfully
+                  data:
+                    $ref: '#/components/schemas/AuthenticateSuccessfully'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      password:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "wrong-password"
+                          msg:
+                            type: string
+                            example: "Email or password is incorrect!"
+                          path:
+                            type: string
+                            example: "password"
+                          location:
+                            type: string
+                            example: "body"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "Non-existent-email@gmail.com"
+                          msg:
+                            type: string
+                            example: "Email not found!"
+                          path:
+                            type: string
+                            example: "email"
+                          location:
+                            type: string
+                            example: "body"
+        '500':
+          description: Registration failed due to server error
+      security: []
+
+  /api/auth/google:
+    post:
+      tags:
+        - auth
+      summary: Login or register with Google
+      operationId: GoogleOauth
+      description: |-
+        Authenticates a user with Google.   
+        - If the user already exists (matched by email), returns user data and sets an access token cookie.  
+        - If the user does not exist, automatically creates a new account using data from Google.  
+        The password is auto-generated and hashed internally.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleLoginBody'
+      responses:
+        '200':
+          description: Successfully logged in or registered
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Login successfully
+                  data:
+                    $ref: '#/components/schemas/UserResponse'
+        '500':
+          description: Server error while logging in with Google
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error while logging in with Google!"
+      security: []
+
+  /api/auth/users/forgot-password:
+    post:
+      tags:
+        - auth
+      summary: Request password reset via email
+      operationId: forgotPassword
+      requestBody:
+        description: The email to send the OTP code
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email: 
+                  type: string
+                  example: "test@gmail.com"
+      responses:
+        '200':
+          description: OTP sent successfully!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "OTP code sent via email!"
+                      OTP:
+                        type: string
+                        example: "230405"
+        '400':
+          description: Invalid email format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "example@"
+                          msg:
+                            type: string
+                            example: "Invalid or missing email format!"
+                          path:
+                            type: string
+                            example: "email"
+                          location:
+                            type: string
+                            example: "body"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "Non-existent-email@gmail.com"
+                          msg:
+                            type: string
+                            example: "Email not found!"
+                          path:
+                            type: string
+                            example: "email"
+                          location:
+                            type: string
+                            example: "body"
+        '500':
+          description: Server error while working with OTP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error while generating or sending OTP!"
+      security: []
+
+  /api/auth/users/otp-password:
+    post:
+      tags:
+        - auth
+      summary: Verify OTP for password reset
+      description: |-
+        Validates the OTP sent to user's email and logs them in if correct.
+      operationId: verifyOtpPassword
+      requestBody:
+        description: OTP code to verify
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                otp: 
+                  type: string
+                  example: "230405"
+      responses:
+        '200':
+          description: OTP verified successfully!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "OTP verified successfully!"
+        '401':
+          description: Unauthorized
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid or expired OTP code!"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Validation error"
+                  errors:
+                    type: object
+                    properties:
+                      email:
+                        type: object
+                        properties:
+                          type:
+                            type: string
+                            example: "field"
+                          value:
+                            type: string
+                            example: "Non-existent-email@gmail.com"
+                          msg:
+                            type: string
+                            example: "Email not found!"
+                          path:
+                            type: string
+                            example: "email"
+                          location:
+                            type: string
+                            example: "body"
+        '500':
+          description: Server error while verifying OTP
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error while verifying OTP code!"
+      security: []
+
+
+components:
+  schemas:
+    RegisterBody:
+      type: object
+      required:
+        - username
+        - email 
+        - password
+      properties:
+        username:
+          type: string
+          description: Must be unique across all users
+          example: "test_username"
+        email:
+          type: string
+          description: Must be unique across all users
+          example: "test@gmail.com"
+        password:
+          type: string
+          example: "Test123@"
+    LoginBody:
+      type: object
+      required:
+        - email 
+        - password
+      properties:
+        email:
+          type: string
+          example: "test@gmail.com"
+        password:
+          type: string
+          example: "Test123@"
+    AuthenticateSuccessfully:
+      type: object
+      properties:
+        result:
+          type: object
+          properties:
+            access_token:
+              type: string
+              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    GoogleLoginBody:
+      type: object
+      properties:
+        email:
+          type: string
+          example: "example@gmail.com"
+        name:
+          type: string
+          example: "jung"
+        photo:
+          type: string
+          example: "https://lh3.googleusercontent.com/a-/AOh14GgXYZ"
+    UserResponse:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "65320a8c32f4e"
+        email:
+          type: string
+          example: "example@gmail.com"
+        name:
+          type: string
+          example: "jung"
+        accessToken:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        Use the `Bearer` scheme to authenticate requests. Include the token in the `Authorization` header as follows:
+        ```
+        Authorization: Bearer <your_token>
+        ```
+security:
+  - BearerAuth: []
+  
+
+
+
