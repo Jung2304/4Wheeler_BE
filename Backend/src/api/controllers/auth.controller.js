@@ -78,7 +78,9 @@ module.exports.login = async (req, res) => {
 //< [POST] /api/auth/google
 module.exports.google = async (req, res) => {
   try {
-    const user = await User.findOne({ email: req.body.email });
+    const { email, name, picture } = req.googleUser;
+
+    const user = await User.findOne({ email });
 
     if (user) {
       const { password: pass, ...rest } = user._doc;
@@ -95,10 +97,10 @@ module.exports.google = async (req, res) => {
       
       //> When saved, we need to make that username unique and no spacing
       const newUser = new User({ 
-        username: req.body.name.split(" ").join("").toLowerCase() + generate.generateRandomString(7), 
-        email: req.body.email, 
+        username: name.split(" ").join("").toLowerCase() + generate.generateRandomString(7), 
+        email, 
         password: hashedPassword,
-        avatar: req.body.photo, 
+        avatar: picture, 
       });
       await newUser.save();
 

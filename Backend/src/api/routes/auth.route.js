@@ -2,6 +2,9 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/auth.controller.js");
 
+//! Middleware
+const { verifyGoogleOauth } = require("../middlewares/verifyGoogleOauth.js");
+
 /**
  * Description: Register a new user
  * Path: /users/register
@@ -24,7 +27,7 @@ router.post("/users/login", controller.login);
  * Method: POST
  * Body: { email: string, password: string }
  */
-router.post("/google", controller.google)
+router.post("/google", verifyGoogleOauth, controller.google)
 
 /**
  * Description: User requests password reset via email

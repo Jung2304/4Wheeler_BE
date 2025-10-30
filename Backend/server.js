@@ -1,12 +1,18 @@
+//! NPM PACKAGES
 const express = require("express");
 const bodyParser = require("body-parser");
 const cors = require("cors");
 const morgan = require("morgan");
 const cookieParser = require("cookie-parser");
+const dotenv = require("dotenv");
+dotenv.config();     
+
+//! FIREBASE INIT
+require("./src/api/config/firebase.js");
+
+//! INTERNAL FILES
 const routes = require("./src/api/routes/index.route.js");
 const { swaggerDocs } = require("./src/swagger.js");
-
-require("dotenv").config();     
 
 //! CONFIG
 const properties = require("./src/api/config/properties.js");     
@@ -22,12 +28,6 @@ app.use(bodyParser.json());             // Parse JSON bodies
 app.use(cookieParser());                // Parse cookie header
 app.use(bodyParser.urlencoded({ extended: true }));     // Parse URL-encoded bodies
 
-//! PORT
-const port = process.env.PORT || 8000;      
-app.listen(port, () => {
-  console.log(`🚀 Server is running on port ${port}`);
-});    
-
 //! DATABASE
 database.connect();       // kết nối database 
 
@@ -36,3 +36,9 @@ routes(app);
 
 //! SWAGGER SETUP
 swaggerDocs(app);      
+
+//! SERVER
+const port = process.env.PORT || 8000;      
+app.listen(port, () => {
+  console.log(`🚀 Server is running on port ${port}`);
+}); 
