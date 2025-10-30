@@ -25,3 +25,6 @@ Thumbs.db
 
 # testing
 /coverage
+
+# Firebase key file
+/wheeler-32b8c-firebase-adminsdk-fbsvc-f7d358d1de.json
