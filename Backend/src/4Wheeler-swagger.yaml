@@ -220,6 +220,26 @@ paths:
                     example: Login successfully
                   data:
                     $ref: '#/components/schemas/UserResponse'
+        '400':
+          description: Missing ID token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Token is not granted by Firebase
+        '401':
+          description: Invalid or expired ID token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or expired ID token 
         '500':
           description: Server error while logging in with Google
           content:
