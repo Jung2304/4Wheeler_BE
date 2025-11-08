@@ -1,6 +1,7 @@
 //! PACKAGES
 const bcryptjs = require("bcryptjs");
 const validator = require("validator");
+const crypto = require("crypto");
 
 //! HELPERS
 const generate = require("../helpers/generateRandom.js");
@@ -54,7 +55,7 @@ module.exports.login = async (req, res) => {
       return res.status(404).json({ message: "Email not found!" }); 
     } 
     else {
-      const validPassword = bcryptjs.compareSync(password, validUser.password);
+      const validPassword = await bcryptjs.compare(password, validUser.password);
       
       if (!validPassword) {
         return res.status(401).json({ message: "Email or password is incorrect!" });
@@ -143,7 +144,7 @@ module.exports.forgotPassword = async (req, res) => {
     const objectForgotPassword = {
       email: email,
       otp: otp,
-      expireAt: Date.now() + minutesExpire * 60,
+      expireAt: Date.now() + minutesExpire * 60 * 1000,
     };
 
     const forgotPassword = new ForgotPassword(objectForgotPassword);
@@ -181,20 +182,65 @@ module.exports.otpPassword = async (req, res) => {
         return res.status(404).json({ message: "User not found!" });
       }
 
-      const { password: pass, ...rest } = user._doc;
-      res.cookie("access_token", generateJWT(user), { 
-        httpOnly: true,                   
-        secure: process.env.NODE_ENV === "production",            
-        sameSite: "strict",                   
-      })
-      .status(200)
-      .json({ 
-        message: "OTP verified successfully!",
-        user: { id: user._id, email: user.email },
+      //> Generate a short-lived reset token, which proves you completed verification and have permission to change password once.
+      const resetToken = crypto.randomBytes(32).toString("hex");
+      const resetTokenHash = crypto.createHash("sha256").update(resetToken).digest("hex");
+  
+      //> Store token hash and expiry in ForgotPassword record
+      record.resetToken = resetTokenHash;
+      record.resetTokenExpires = Date.now() + 10 * 60 * 1000;
+      await record.save();
+
+      //> Return reset token to FE
+      return res.status(200).json({
+        message: "OTP verified successfully",
+        reset_token: resetToken,
       });
     }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error while verifying OTP code!" });
+  }
+};
+
+//< [POST] /api/auth/users/reset-password
+module.exports.resetPassword = async (req, res) => {
+  try {
+    const { reset_token, new_password } = req.body;
+    if (!reset_token || !new_password) {
+      return res.status(400).json({ message: "Reset token and new password are required!" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(reset_token).digest("hex");
+
+    const record = await ForgotPassword.findOne({
+      resetToken: hashedToken,
+      resetTokenExpires: { $gt: Date.now() },
+    });
+    if (!record) {
+      return res.status(401).json({ message: "Invalid or expired reset token!" });
+    }
+
+    const user = await User.findOne({ email: record.email });
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+    
+    const samePassword = await bcryptjs.compare(new_password, user.password);
+    
+    if (samePassword) {
+      return res.status(400).json({ message: "New password cannot be the same as your old password!" });
+    }
+
+    const salt = await bcryptjs.genSalt(10);
+    const hashedPassword = await bcryptjs.hash(new_password, salt);
+
+    user.password = hashedPassword;
+    await user.save();
+
+    return res.status(200).json({ message: "Password reset successfully!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Server error while resetting password!" });
   }
 };

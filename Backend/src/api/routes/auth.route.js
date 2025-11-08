@@ -45,4 +45,12 @@ router.post("/users/forgot-password", controller.forgotPassword);
  */
 router.post("/users/otp-password", controller.otpPassword);
 
+/**
+ * Description: Users input their new password
+ * Path: /users/reset-password
+ * Method: POST
+ * Body: { new_password: string, reset_token: string }
+ */
+router.post("/users/reset-password", controller.resetPassword);
+
 module.exports = router;
