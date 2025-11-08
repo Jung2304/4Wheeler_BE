@@ -277,15 +277,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                        example: "OTP code sent via email!"
-                      OTP:
-                        type: string
-                        example: "230405"
+                  message:
+                    type: string
+                    example: "OTP code sent via email!"
+                  OTP:
+                    type: string
+                    example: "230405"
         '400':
           description: Invalid email format
           content:
@@ -366,10 +363,11 @@ paths:
         - auth
       summary: Verify OTP for password reset
       description: |-
-        Validates the OTP sent to user's email and logs them in if correct.
+        Validates the OTP sent to user's email and grant a reset-token if correct.
       operationId: verifyOtpPassword
       requestBody:
         description: OTP code to verify
+        required: true
         content:
           application/json:
             schema:
@@ -386,12 +384,12 @@ paths:
               schema:
                 type: object
                 properties:
-                  result:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                        example: "OTP verified successfully!"
+                  message:
+                    type: string
+                    example: "OTP verified successfully!"
+                  reset_token:
+                    type: string
+                    example: "7fd6217c4b12644681808f06679d4fd0f4b7dd5fa46f02967ebdd07d733bd991"
         '401':
           description: Unauthorized
           content:
@@ -445,6 +443,79 @@ paths:
                     example: "Server error while verifying OTP code!"
       security: []
 
+  /api/auth/users/reset-password:
+    post:
+      tags:
+        - auth
+      summary: Reset user's password using reset token
+      operationId: resetPassword
+      requestBody:
+        description: The new password and reset token 
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_password: 
+                  type: string
+                  example: "NewPassword"
+                reset_token:
+                  type: string
+                  example: "7fd6217c4b12644681808f06679d4fd0f4b7dd5fa46f02967ebdd07d733bd991"
+      responses:
+        '200':
+          description: Password reset successfully!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Password reset successfully!"
+        '400':
+          description: Invalid request or same password as before
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "New password cannot be the same as your old password!"
+        '401':
+          description: Invalid or expired reset token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid or expired reset token!"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found!"
+        '500':
+          description: Server error while resetting password!
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error while resetting password!"
+      security: []
+
 
 components:
   schemas:
@@ -481,14 +552,18 @@ components:
     AuthenticateSuccessfully:
       type: object
       properties:
-        result:
-          type: object
-          properties:
-            access_token:
-              type: string
-              example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        refresh_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
     GoogleLoginBody:
       type: object
+      required:
+      - email
+      - name
+      - photo
       properties:
         email:
           type: string
