@@ -22,6 +22,22 @@ router.post("/users/register", controller.register);
 router.post("/users/login", controller.login);
 
 /**
+ * Description: User logs out of the service
+ * Path: /users/logout
+ * Method: POST
+ * Body: Does not require
+ */
+router.post("/users/logout", controller.logout);
+
+/**
+ * Description: Refreshes the access token
+ * Path: /users/refresh-token
+ * Method: POST
+ * Body: { refresh-token: string }
+ */
+router.post("/users/refresh-token", controller.refreshAccessToken);
+
+/**
  * Description: User uses Google account to login or register
  * Path: /users/login
  * Method: POST
