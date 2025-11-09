@@ -55,6 +55,16 @@ paths:
                         type: string
                         example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         '400':
+          description: Invalid or missing email format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or missing email format        
+        '409':
           description: Username or email already exists
           content:
             application/json:
@@ -133,6 +143,16 @@ paths:
                     example: Login successfully
                   data:
                     $ref: '#/components/schemas/AuthenticateSuccessfully'
+        '400':
+          description: Invalid or missing email format
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Invalid or missing email format
         '401':
           description: Invalid credentials
           content:
