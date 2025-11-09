@@ -36,7 +36,7 @@ paths:
               $ref: '#/components/schemas/RegisterBody'
       responses:
         '201':
-          description: User created successfully
+          description: User registered successfully
           content:
             application/json:
               schema:
@@ -45,6 +45,15 @@ paths:
                   message:
                     type: string
                     example: User registered successfully
+                  result:
+                    type: object
+                    properties:
+                      access_token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+                      refresh_token:
+                        type: string
+                        example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
         '400':
           description: Username or email already exists
           content:
@@ -188,6 +197,100 @@ paths:
                             example: "body"
         '500':
           description: Registration failed due to server error
+      security: []
+
+  /api/auth/users/refresh-token:
+    post:
+      tags:
+        - auth
+      summary: Refreshes the access token
+      operationId: refreshToken
+      requestBody:
+        description: The refresh token using for generating a new access token 
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+      responses:
+        '200':
+          description: Get new access token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: Access token refreshed
+                  result:
+                    $ref: '#/components/schemas/AuthenticateSuccessfully'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Refresh token missing or used"
+        '403':
+          description: Invalid or expired refresh token
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Invalid or expired refresh token"
+      security: []
+
+  /api/auth/users/logout:
+    post:
+      tags:
+        - auth
+      summary: Log out the current user
+      operationId: logoutUser
+      requestBody:
+        description: Operation does not require a body
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refresh_token:
+                  type: string
+                  example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              required:
+                - refresh_token
+      responses:
+        '200':
+          description: Logged out successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logout successfully"
+        '500':
+          description: Server error while logging out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logout failed due to server error"
       security: []
 
   /api/auth/google:

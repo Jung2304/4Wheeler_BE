@@ -2,10 +2,11 @@
 const bcryptjs = require("bcryptjs");
 const validator = require("validator");
 const crypto = require("crypto");
+const jwt = require("jsonwebtoken");
 
 //! HELPERS
 const generate = require("../helpers/generateRandom.js");
-const { generateJWT } = require("../helpers/generateJWT.js");
+const { generateAccessToken, generateRefreshToken } = require("../helpers/generateJWT.js");
 const sendMailHelper = require("../helpers/sendMail.js");
 
 //! MODELS
@@ -27,11 +28,29 @@ module.exports.register = async (req, res) => {
       return res.status(400).json({ message: `${field} already exists!` });
     } else {
       const hashedPassword = bcryptjs.hashSync(password, 10);
+
       const newUser = new User({ username, email, password: hashedPassword });
-  
       await newUser.save();
       
-      return res.status(201).json({ message: "User created successfully!" });
+      const accessToken = generateAccessToken(newUser);
+      const refreshToken = generateRefreshToken(newUser);
+
+      res.cookie("access_token", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+      res.cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+      });
+
+      const { password: pass, ...rest } = newUser._doc;
+      return res.status(201).json({ 
+        message: "User created successfully!", 
+        user: rest,
+      });
     }
   } catch (error) {
     console.error(error);
@@ -63,16 +82,71 @@ module.exports.login = async (req, res) => {
       else {
         const { password: pass, ...rest } = validUser._doc;
         
-        res.cookie("access_token", generateJWT(validUser), { 
+        res
+        .cookie("access_token", generateAccessToken(validUser), { 
           httpOnly: true,                   // Hide cookie from JS
           secure: process.env.NODE_ENV === "production",            // Only HTTPS sends cookies
           sameSite: "strict",                   // Block cross-site cookie sending
+        })
+        .cookie("refresh_token", generateRefreshToken(validUser), {
+          httpOnly: true,                   
+          secure: process.env.NODE_ENV === "production",            
+          sameSite: "strict", 
         }).status(200).json(rest);
       }
     }
   } catch (error) {
     console.error(error);
     return res.status(500).json({ message: "Server error while logging in!" });
+  }
+};
+
+//< [POST] /api/auth/users/logout
+module.exports.logout = async (req, res) => {
+  try {
+    res.clearCookie("access_token", {
+      httpOnly: true,                   
+      secure: process.env.NODE_ENV === "production",            
+      sameSite: "strict", 
+    });
+    res.clearCookie("refresh_token", {
+      httpOnly: true,                   
+      secure: process.env.NODE_ENV === "production",            
+      sameSite: "strict", 
+    });
+
+    return res.status(200).json({ message: "Logged out successfully!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Logout failed due to server error!" });
+  }
+};
+
+//< [POST] /api/auth/users/refresh-token
+module.exports.refreshAccessToken = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refresh_token;
+    if (!refreshToken) {
+      return res.status(401).json({ message: "Refresh token missing or used!" });
+    }
+
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
+
+    const newAccessToken = generateAccessToken({
+      id: decoded.sub,
+      username: decoded.username
+    });
+
+    res.cookie("access_token", newAccessToken, {
+      httpOnly: true,                   
+      secure: process.env.NODE_ENV === "production",            
+      sameSite: "strict", 
+    });
+
+    return res.status(200).json({ message: "Access token refreshed!" });
+  } catch (error) {
+    console.error(error);
+    return res.status(403).json({ message: "Invalid or expired refresh token!" });
   }
 };
 
