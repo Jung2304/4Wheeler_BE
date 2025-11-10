@@ -18,6 +18,10 @@ module.exports.register = async (req, res) => {
   const { username, email, password } = req.body;
 
   try {
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid or missing email format!" });
+    }
+
     const existingUser = await User.findOne({         // return an object of {username, email}
       $or: [{ username }, { email }],
       deleted: false
@@ -25,7 +29,7 @@ module.exports.register = async (req, res) => {
 
     if (existingUser) {
       const field = existingUser.username === username ? "Username" : "Email";
-      return res.status(400).json({ message: `${field} already exists!` });
+      return res.status(409).json({ message: `${field} already exists!` });
     } else {
       const hashedPassword = bcryptjs.hashSync(password, 10);
 
@@ -56,7 +60,7 @@ module.exports.register = async (req, res) => {
     console.error(error);
 
     if (error.code === 11000) {
-      return res.status(400).json({ message: "Email or username already exists!" });
+      return res.status(409).json({ message: "Email or username already exists!" });
     }
     
     return res.status(500).json({ message: "Sign-up failed", error: error.message }); 
@@ -68,8 +72,11 @@ module.exports.login = async (req, res) => {
   const { email, password } = req.body;
 
   try {
+    if (!validator.isEmail(email)) {
+      return res.status(400).json({ message: "Invalid or missing email format!" });
+    }
+
     const validUser = await User.findOne({ email });
-    
     if (!validUser) {
       return res.status(404).json({ message: "Email not found!" }); 
     } 
