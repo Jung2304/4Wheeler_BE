@@ -18,7 +18,8 @@ servers:
     description: Local server
 tags:
   - name: auth
-    description: Authentication endpoints for user registration, login, and Google OAuth
+    description: Authentication endpoints for User's requests
+  - name: cars 
 
 paths:
   /api/auth/users/register:
