@@ -20,7 +20,7 @@ tags:
   - name: auth
     description: Authentication endpoints for User's requests
   - name: cars 
-
+    description: Endpoints for retrieving car information, and showroom details. 
 paths:
   /api/auth/users/register:
     post:
@@ -640,6 +640,124 @@ paths:
                     example: "Server error while resetting password!"
       security: []
 
+  /api/cars/listing:
+    get:
+      tags:
+        - cars
+      summary: Get all cars with pagination, search, and category filters
+      operationId: getCars
+      parameters:
+        - name: page
+          in: query
+          description: Page number for pagination (default is 1)
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: limit
+          in: query
+          description: Number of cars per page (default is 12)
+          required: false
+          schema:
+            type: integer
+            example: 12
+        - name: search
+          in: query
+          description: Search by car make or model name (case-insensitive)
+          required: false
+          schema:
+            type: string
+            example: "BMW"
+        - name: category
+          in: query
+          description: Filter by car category (e.g., SUV, Sedan, Hatchback)
+          required: false
+          schema:
+            type: string
+            example: "SUV"
+        - name: status
+          in: query
+          description: Filter by car status
+          required: false
+          schema:
+            type: string
+            example: "available"
+      responses:
+        '200':
+          description: List of cars retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  page:
+                    type: integer
+                    example: 1
+                  pages:
+                    type: integer
+                    example: 5
+                  total:
+                    type: integer
+                    example: 50
+                  cars:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CarResponse'
+        '500':
+          description: Server error while fetching cars
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch cars"
+      security: []
+
+  /api/cars/{id}:
+    get:
+      tags:
+        - cars
+      summary: Get car details by ID
+      operationId: getCarDetail
+      parameters:
+        - name: id
+          in: path
+          description: Car ID (MongoDB ObjectId)
+          required: true
+          schema:
+            type: string
+            example: "65320a8c32f4e1b2c3d4e5f6"
+      responses:
+        '200':
+          description: Car details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CarResponse'
+        '404':
+          description: Car not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car not found"
+        '500':
+          description: Server error while fetching car details
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch car details"
+      security: []
+
 
 components:
   schemas:
@@ -713,6 +831,65 @@ components:
         accessToken:
           type: string
           example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+    CarResponse:
+      type: object
+      properties:
+        _id:
+          type: string
+          example: "65320a8c32f4e1b2c3d4e5f6"
+        make:
+          type: string
+          example: "BMW"
+        model:
+          type: string
+          example: "X5"
+        year:
+          type: integer
+          example: 2023
+        price:
+          type: number
+          format: double
+          example: 75000
+        color:
+          type: string
+          example: "Black"
+        category:
+          type: string
+          example: "SUV"
+        seats:
+          type: integer
+          example: 5
+        transmission:
+          type: string
+          example: "Automatic"
+        fuelType:
+          type: string
+          example: "Gasoline"
+        engine:
+          type: string
+          example: "2.0L Turbo"
+        horsepower:
+          type: integer
+          example: 335
+        images:
+          type: array
+          items:
+            type: string
+          example: ["image1.jpg", "image2.jpg"]
+        description:
+          type: string
+          example: "Premium luxury SUV with advanced features"
+        deleted:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+          example: "2023-10-25T12:34:56.789Z"
+        updatedAt:
+          type: string
+          format: date-time
+          example: "2023-10-25T12:34:56.789Z"
 
   securitySchemes:
     BearerAuth:
