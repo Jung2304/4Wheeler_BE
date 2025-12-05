@@ -1,0 +1,72 @@
+const express = require("express");
+const router = express.Router();
+const controller = require("../controllers/auth.controller.js");
+
+//! Middleware
+const { verifyGoogleOauth } = require("../middlewares/verifyGoogleOauth.js");
+
+/**
+ * Description: Register a new user
+ * Path: /users/register
+ * Method: POST
+ * Body: { username: string, email: string, password: string }
+ */
+router.post("/users/register", controller.register);
+
+/**
+ * Description: User login into service
+ * Path: /users/login
+ * Method: POST
+ * Body: { email: string, password: string }
+ */
+router.post("/users/login", controller.login);
+
+/**
+ * Description: User logs out of the service
+ * Path: /users/logout
+ * Method: POST
+ * Body: Does not require
+ */
+router.post("/users/logout", controller.logout);
+
+/**
+ * Description: Refreshes the access token
+ * Path: /users/refresh-token
+ * Method: POST
+ * Body: { refresh-token: string }
+ */
+router.post("/users/refresh-token", controller.refreshAccessToken);
+
+/**
+ * Description: User uses Google account to login or register
+ * Path: /users/login
+ * Method: POST
+ * Body: { email: string, password: string }
+ */
+router.post("/google", verifyGoogleOauth, controller.google)
+
+/**
+ * Description: User requests password reset via email
+ * Path: /users/forgot-password
+ * Method: POST
+ * Body: { email: string }
+ */
+router.post("/users/forgot-password", controller.forgotPassword);
+
+/**
+ * Description: Users verify OTP for password reset
+ * Path: /users/otp-password
+ * Method: POST
+ * Body: { otp: string }
+ */
+router.post("/users/otp-password", controller.otpPassword);
+
+/**
+ * Description: Users input their new password
+ * Path: /users/reset-password
+ * Method: POST
+ * Body: { new_password: string, reset_token: string }
+ */
+router.post("/users/reset-password", controller.resetPassword);
+
+module.exports = router;
