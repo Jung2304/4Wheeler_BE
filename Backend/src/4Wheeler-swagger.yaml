@@ -21,6 +21,8 @@ tags:
     description: Authentication endpoints for User's requests
   - name: cars 
     description: Endpoints for retrieving car information, and showroom details. 
+  - name: admin
+    description: Admin only endpoints for managing cars 
 paths:
   /api/auth/users/register:
     post:
@@ -757,6 +759,400 @@ paths:
                     type: string
                     example: "Failed to fetch car details"
       security: []
+
+  /api/cars/user/favorites:
+    get:
+      tags:
+        - cars
+      summary: Get user's favorite cars
+      operationId: getUserFavorites
+      description: Retrieve all cars saved to the user's favorites/wishlist
+      responses:
+        '200':
+          description: Favorite cars retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: integer
+                    example: 3
+                  favorites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CarResponse'
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found"
+        '500':
+          description: Server error while fetching favorites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to fetch favorites"
+      security:
+        - BearerAuth: []
+
+  /api/cars/favorites/{carId}:
+    post:
+      tags:
+        - cars
+      summary: Add car to user's favorites
+      operationId: addToFavorites
+      description: Add a specific car to the user's favorites/wishlist
+      parameters:
+        - name: carId
+          in: path
+          description: Car ID to add to favorites
+          required: true
+          schema:
+            type: string
+            example: "65320a8c32f4e1b2c3d4e5f6"
+      responses:
+        '200':
+          description: Car added to favorites successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car added to favorites"
+                  favorites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CarResponse'
+        '404':
+          description: Car not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car not found"
+        '500':
+          description: Server error while adding to favorites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to add to favorites"
+      security:
+        - BearerAuth: []
+
+    delete:
+      tags:
+        - cars
+      summary: Remove car from user's favorites
+      operationId: removeFromFavorites
+      description: Remove a specific car from the user's favorites/wishlist
+      parameters:
+        - name: carId
+          in: path
+          description: Car ID to remove from favorites
+          required: true
+          schema:
+            type: string
+            example: "65320a8c32f4e1b2c3d4e5f6"
+      responses:
+        '200':
+          description: Car removed from favorites successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car removed from favorites"
+                  favorites:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/CarResponse'
+        '500':
+          description: Server error while removing from favorites
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to remove from favorites"
+      security:
+        - BearerAuth: []
+
+  /api/admin/cars/create:
+    post:
+      tags:
+        - admin
+      summary: Create a new car (admin only)
+      operationId: createCar
+      requestBody:
+        description: Car details to create
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - make
+                - model
+                - year
+                - price
+              properties:
+                make:
+                  type: string
+                  example: "BMW"
+                model:
+                  type: string
+                  example: "X5"
+                year:
+                  type: integer
+                  example: 2023
+                price:
+                  type: number
+                  format: double
+                  example: 75000
+                color:
+                  type: string
+                  example: "Black"
+                category:
+                  type: string
+                  example: "SUV"
+                seats:
+                  type: integer
+                  example: 5
+                transmission:
+                  type: string
+                  example: "Automatic"
+                fuelType:
+                  type: string
+                  example: "Gasoline"
+                engine:
+                  type: string
+                  example: "2.0L Turbo"
+                horsepower:
+                  type: integer
+                  example: 335
+                images:
+                  type: array
+                  items:
+                    type: string
+                  example: ["image1.jpg", "image2.jpg"]
+                description:
+                  type: string
+                  example: "Premium luxury SUV"
+      responses:
+        '201':
+          description: Car created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "New car created successfully!"
+                  car:
+                    $ref: '#/components/schemas/CarResponse'
+        '400':
+          description: Missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Make, model, year and price are required!"
+        '409':
+          description: Car already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Brand BMW with model X5 already exists!"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed due to server error!"
+      security:
+        - BearerAuth: []
+
+  /api/admin/cars/{id}:
+    put:
+      tags:
+        - admin
+      summary: Update car details (admin only)
+      operationId: updateCar
+      parameters:
+        - name: id
+          in: path
+          description: Car ID (MongoDB ObjectId)
+          required: true
+          schema:
+            type: string
+            example: "65320a8c32f4e1b2c3d4e5f6"
+      requestBody:
+        description: Car details to update (all fields optional)
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                make:
+                  type: string
+                  example: "BMW"
+                model:
+                  type: string
+                  example: "X5"
+                year:
+                  type: integer
+                  example: 2023
+                price:
+                  type: number
+                  format: double
+                  example: 75000
+                color:
+                  type: string
+                  example: "Black"
+                category:
+                  type: string
+                  example: "SUV"
+                seats:
+                  type: integer
+                  example: 5
+                transmission:
+                  type: string
+                  example: "Automatic"
+                fuelType:
+                  type: string
+                  example: "Gasoline"
+                engine:
+                  type: string
+                  example: "2.0L Turbo"
+                horsepower:
+                  type: integer
+                  example: 335
+                images:
+                  type: array
+                  items:
+                    type: string
+                  example: ["image1.jpg"]
+                description:
+                  type: string
+                  example: "Updated description"
+      responses:
+        '200':
+          description: Car updated successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car updated successfully!"
+                  car:
+                    $ref: '#/components/schemas/CarResponse'
+        '404':
+          description: Car not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to update car!"
+      security:
+        - BearerAuth: []
+
+    delete:
+      tags:
+        - admin
+      summary: Delete car (soft delete - admin only)
+      operationId: deleteCar
+      parameters:
+        - name: id
+          in: path
+          description: Car ID (MongoDB ObjectId)
+          required: true
+          schema:
+            type: string
+            example: "65320a8c32f4e1b2c3d4e5f6"
+      responses:
+        '200':
+          description: Car deleted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car deleted successfully!"
+        '404':
+          description: Car not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car not found"
+        '500':
+          description: Server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to delete car!"
+      security:
+        - BearerAuth: []
 
 
 components:

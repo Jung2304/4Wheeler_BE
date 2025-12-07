@@ -3,13 +3,12 @@ const carsRouter = require("./cars.route.js");
 const verifyToken = require("../middlewares/verifyToken.js");
 
 module.exports = (app) => {
+  app.get("/", (req, res) => {
+    res.send("4Wheeler API is running 🚗");
+  });
+
   app.use("/api/auth", authRouter);
   app.use("/api/cars", carsRouter);
 
-  app.use("/protected", verifyToken, (req, res) => {
-    res.json({
-      message: "Access granted to protected route",
-      user: req.user,
-    })
-  });
+  
 };
