@@ -65,6 +65,67 @@ module.exports.getCarDetail = async (req, res) => {
   }
 }
 
+//< [GET] /api/admin/cars
+module.exports.getAllCars = async (req, res) => {
+  try {
+    const page = Number(req.query.page) || 1;
+    const limit = Number(req.query.limit) || 12;
+    const search = req.query.search || "";
+    const category = req.query.category || "";
+    const status = req.query.status || "";
+
+    // Admin can see all cars including deleted
+    const query = {};
+    if (search) {
+      query.$or = [
+        { make: { $regex: search, $options: "i" } },
+        { model: { $regex: search, $options: "i" } }
+      ];
+    }
+    if (category) {
+      query.category = category;
+    }
+    if (status) {
+      query.status = status;
+    }
+
+    const total = await Car.countDocuments(query);
+    const cars = await Car.find(query)
+      .skip((page - 1) * limit)
+      .limit(limit)
+      .sort({ createdAt: -1 }); 
+    
+    res.json({
+      page,
+      pages: Math.ceil(total / limit),
+      total,
+      cars
+    })
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch cars due to server error!" });
+  }
+}
+
+//< [GET] /api/admin/cars/:id
+module.exports.getCarDetailAdmin = async (req, res) => {
+  try {
+    const { id } = req.params;
+    
+    // Admin can see all cars including deleted
+    const car = await Car.findOne({ _id: id });
+    
+    if (!car) {
+      return res.status(404).json({ message: "Car not found" });
+    }
+    
+    res.json(car);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to fetch car details" });
+  }
+}
+
 //< [POST] /api/admin/cars/create
 module.exports.createCar = async (req, res) => {
   try {

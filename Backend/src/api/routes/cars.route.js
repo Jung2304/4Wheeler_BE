@@ -42,7 +42,23 @@ router.post("/favorites/:carId", verifyToken, controller.addToFavorites);
  */
 router.delete("/favorites/:carId", verifyToken, controller.removeFromFavorites);
 
-// Admin Routes (Protected)
+//! Admin Routes (Protected)
+
+/**
+ * Description: Get all cars including deleted (admin only)
+ * Path: /admin/cars
+ * Method: GET
+ * Auth: Required (Admin)
+ */
+router.get("/admin/cars", verifyAdmin, controller.getAllCars);
+
+/**
+ * Description: Get specific car details by ID including deleted (admin only)
+ * Path: /admin/cars/:id
+ * Method: GET
+ * Auth: Required (Admin)
+ */
+router.get("/admin/cars/:id", verifyAdmin, controller.getCarDetailAdmin);
 
 /**
  * Description: Create a new car (admin only)
