@@ -22,7 +22,11 @@ const database = require("./src/api/config/database.js");
 const app = express();  
 
 //! MIDDLEWARES
-app.use(cors());                       // Allow cross-origin requests
+app.use(cors({
+  origin: properties.CORS,
+  credentials: true
+}));                       // Allow cross-origin requests from specified domains
+
 app.use(morgan("dev"));                 // Log HTTP requests
 app.use(bodyParser.json());             // Parse JSON bodies
 app.use(cookieParser());                // Parse cookie header
