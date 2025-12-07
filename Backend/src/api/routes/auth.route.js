@@ -4,6 +4,7 @@ const controller = require("../controllers/auth.controller.js");
 
 //! Middleware
 const { verifyGoogleOauth } = require("../middlewares/verifyGoogleOauth.js");
+const verifyToken = require("../middlewares/verifyToken.js");
 
 /**
  * Description: Register a new user
@@ -68,5 +69,13 @@ router.post("/users/otp-password", controller.otpPassword);
  * Body: { new_password: string, reset_token: string }
  */
 router.post("/users/reset-password", controller.resetPassword);
+
+/**
+ * Description: Get user profile with favorites
+ * Path: /users/profile
+ * Method: GET
+ * Auth: Required
+ */
+router.get("/users/profile", verifyToken, controller.getUserProfile);
 
 module.exports = router;

@@ -644,6 +644,85 @@ paths:
                     example: "Server error while resetting password!"
       security: []
 
+  /api/auth/users/profile:
+    get:
+      tags:
+        - auth
+      summary: Get user profile with favorites
+      operationId: getUserProfile
+      description: Retrieve the authenticated user's profile information including their favorite cars
+      responses:
+        '200':
+          description: User profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User profile retrieved successfully!"
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "65320a8c32f4e1b2c3d4e5f6"
+                      username:
+                        type: string
+                        example: "testuser1"
+                      email:
+                        type: string
+                        example: "testuser1@gmail.com"
+                      phone:
+                        type: string
+                        example: "0123456789"
+                      avatar:
+                        type: string
+                        example: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                      role:
+                        type: string
+                        enum: ["user", "admin"]
+                        example: "user"
+                      status:
+                        type: string
+                        example: "active"
+                      favorites:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/CarResponse'
+                        description: Array of favorite cars
+                      createdAt:
+                        type: string
+                        format: date-time
+                        example: "2023-10-25T12:34:56.789Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        example: "2023-10-25T12:34:56.789Z"
+        '404':
+          description: User not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "User not found!"
+        '500':
+          description: Server error while fetching user profile
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Server error while fetching user profile!"
+      security:
+        - BearerAuth: []
+
   /api/cars/listing:
     get:
       tags:
