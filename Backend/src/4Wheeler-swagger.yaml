@@ -16,6 +16,8 @@ info:
 servers:
   - url: http://localhost:4000
     description: Local server
+  - url: https://fourwheeler.onrender.com/api-docs/
+    description: Production server
 tags:
   - name: auth
     description: Authentication endpoints for User's requests
