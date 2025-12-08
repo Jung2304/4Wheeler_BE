@@ -134,7 +134,7 @@ module.exports.createCar = async (req, res) => {
   try {
     const {
       make, model, year, price, color, category, seats, transmission, 
-      fuelType, engine, horsepower, description
+      fuelType, engine, horsepower, description, images
     } = req.body;
 
     if (!make || !model || !year || !price) {
@@ -149,18 +149,36 @@ module.exports.createCar = async (req, res) => {
       return res.status(409).json({ message: `Brand ${make} with model ${model} already exists!` });
     }
 
-    // Upload images to Cloudinary
+    // Handle images from two sources:
+    // 1. Uploaded files via multipart/form-data
+    // 2. Image URLs passed in JSON body
     let imageUrls = [];
+
+    // First, process uploaded files (multipart/form-data)
     if (req.files && req.files.length > 0) {
       try {
         for (let file of req.files) {
-          const fileName = `${make}-${model}-${Date.now()}`;
+          const fileName = `${make}-${model}-${Date.now()}-${Math.random()}`;
           const imageUrl = await uploadToCloudinary(file.buffer, fileName);
           imageUrls.push(imageUrl);
         }
       } catch (uploadError) {
         return res.status(500).json({ message: `Image upload failed: ${uploadError.message}` });
       }
+    }
+
+    // Then, add image URLs from JSON body if provided
+    if (images && Array.isArray(images) && images.length > 0) {
+      // Validate URLs
+      const validUrls = images.filter(url => {
+        try {
+          new URL(url);
+          return true;
+        } catch {
+          return false;
+        }
+      });
+      imageUrls = [...imageUrls, ...validUrls];
     }
 
     const car = new Car({
