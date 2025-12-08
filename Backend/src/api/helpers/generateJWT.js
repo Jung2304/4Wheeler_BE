@@ -11,7 +11,8 @@ module.exports.generateAccessToken = (user) => {
     iat: now,
     jti: uuidv4(),
     username: user.username,
-    email: user.email
+    email: user.email,
+    role: user.role || "user"    // Add role field (defaults to "user")
   };
   const token = jwt.sign(payload, process.env.JWT_SECRET);
   
