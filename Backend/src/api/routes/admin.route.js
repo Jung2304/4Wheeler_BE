@@ -2,8 +2,19 @@ const express = require("express");
 const router = express.Router();
 const controller = require("../controllers/cars.controller.js");
 const verifyAdmin = require("../middlewares/verifyAdmin.js");
+const upload = require("../middlewares/upload.js");
 
 //! Admin Routes (Protected)
+// Place more specific routes first, then more general routes after.
+
+/**
+ * Description: Create a new car with image uploads (admin only)
+ * Path: /admin/cars/create
+ * Method: POST
+ * Auth: Required (Admin)
+ * Files: Multiple images (optional)
+ */
+router.post("/cars/create", verifyAdmin, upload.array("images", 5), controller.createCar);
 
 /**
  * Description: Get all cars including deleted (admin only)
@@ -20,14 +31,6 @@ router.get("/cars", verifyAdmin, controller.getAllCars);
  * Auth: Required (Admin)
  */
 router.get("/cars/:id", verifyAdmin, controller.getCarDetailAdmin);
-
-/**
- * Description: Create a new car (admin only)
- * Path: /admin/cars/create
- * Method: POST
- * Auth: Required (Admin)
- */
-router.post("/cars/create", verifyAdmin, controller.createCar);
 
 /**
  * Description: Update car details (admin only)

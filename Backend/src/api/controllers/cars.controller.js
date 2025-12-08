@@ -2,6 +2,9 @@
 const path = require("path");
 const fs = require("fs");
 
+//! HELPERS
+const { uploadToCloudinary, deleteFromCloudinary } = require("../helpers/uploadHelper.js");
+
 //! MODEL
 const Car = require("../models/cars.model.js");
 const User = require("../models/users.model.js");
@@ -74,7 +77,7 @@ module.exports.getAllCars = async (req, res) => {
     const category = req.query.category || "";
     const status = req.query.status || "";
 
-    // Admin can see all cars including deleted
+      // Admin can see all cars including deleted
     const query = {};
     if (search) {
       query.$or = [
@@ -131,7 +134,7 @@ module.exports.createCar = async (req, res) => {
   try {
     const {
       make, model, year, price, color, category, seats, transmission, 
-      fuelType, engine, horsepower, images, description
+      fuelType, engine, horsepower, description
     } = req.body;
 
     if (!make || !model || !year || !price) {
@@ -146,9 +149,18 @@ module.exports.createCar = async (req, res) => {
       return res.status(409).json({ message: `Brand ${make} with model ${model} already exists!` });
     }
 
-    let imageFiles = images || [];
-    if (req.file) {
-      imageFiles = [req.file.filename];
+    // Upload images to Cloudinary
+    let imageUrls = [];
+    if (req.files && req.files.length > 0) {
+      try {
+        for (let file of req.files) {
+          const fileName = `${make}-${model}-${Date.now()}`;
+          const imageUrl = await uploadToCloudinary(file.buffer, fileName);
+          imageUrls.push(imageUrl);
+        }
+      } catch (uploadError) {
+        return res.status(500).json({ message: `Image upload failed: ${uploadError.message}` });
+      }
     }
 
     const car = new Car({
@@ -163,7 +175,7 @@ module.exports.createCar = async (req, res) => {
       fuelType: fuelType || "Gasoline",
       engine: engine || "",
       horsepower: horsepower ? Number(horsepower) : undefined,
-      images: imageFiles,
+      images: imageUrls,
       description: description || "",
     });
     await car.save();
