@@ -139,10 +139,12 @@ module.exports.refreshAccessToken = async (req, res) => {
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    // Create a user object from decoded token instead of fetching from DB
-    // This is faster and works even if DB is temporarily unavailable
+    // Create a user object from decoded token, preserving role and other fields
     const userObject = {
-      _id: decoded.sub
+      _id: decoded.sub,
+      username: decoded.username,
+      email: decoded.email,
+      role: decoded.role || "user"
     };
 
     const newAccessToken = generateAccessToken(userObject);
