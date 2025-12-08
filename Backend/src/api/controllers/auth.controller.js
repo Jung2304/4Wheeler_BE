@@ -139,13 +139,13 @@ module.exports.refreshAccessToken = async (req, res) => {
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    // Fetch fresh user data to ensure we have correct _id format
-    const user = await User.findById(decoded.sub);
-    if (!user) {
-      return res.status(404).json({ message: "User not found!" });
-    }
+    // Create a user object from decoded token instead of fetching from DB
+    // This is faster and works even if DB is temporarily unavailable
+    const userObject = {
+      _id: decoded.sub
+    };
 
-    const newAccessToken = generateAccessToken(user);
+    const newAccessToken = generateAccessToken(userObject);
 
     res.cookie("access_token", newAccessToken, {
       httpOnly: true,
@@ -158,7 +158,7 @@ module.exports.refreshAccessToken = async (req, res) => {
       accessToken: newAccessToken  // Also return token in body for SPA apps
     });
   } catch (error) {
-    console.error(error);
+    console.error("Refresh token error:", error.message);
     return res.status(403).json({ message: "Invalid or expired refresh token!" });
   }
 };
