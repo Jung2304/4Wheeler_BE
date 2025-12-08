@@ -237,7 +237,7 @@ module.exports.deleteCar = async (req, res) => {
 module.exports.addToFavorites = async (req, res) => {
   try {
     const { carId } = req.params;
-    const userId = req.user._id; 
+    const userId = req.user.sub;  
 
     // Check if car exists
     const car = await Car.findOne({ _id: carId, deleted: false });
@@ -266,7 +266,7 @@ module.exports.addToFavorites = async (req, res) => {
 module.exports.removeFromFavorites = async (req, res) => {
   try {
     const { carId } = req.params;
-    const userId = req.user._id;
+    const userId = req.user.sub;  
 
     const user = await User.findByIdAndUpdate(
       userId,
@@ -287,7 +287,7 @@ module.exports.removeFromFavorites = async (req, res) => {
 //< [GET] /api/cars/user/favorites
 module.exports.getUserFavorites = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.sub;  
 
     const user = await User.findById(userId).populate("favorites");
 

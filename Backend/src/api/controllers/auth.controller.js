@@ -41,13 +41,13 @@ module.exports.register = async (req, res) => {
 
       res.cookie("access_token", accessToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
       });
       res.cookie("refresh_token", refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
+        secure: true,
+        sameSite: "none",
       });
 
       const { password: pass, ...rest } = newUser._doc;
@@ -145,12 +145,10 @@ module.exports.refreshAccessToken = async (req, res) => {
     });
 
     res.cookie("access_token", newAccessToken, {
-      httpOnly: true,                   
-      secure: process.env.NODE_ENV === "production",            
-      sameSite: "strict", 
-    });
-
-    return res.status(200).json({ message: "Access token refreshed!" });
+      httpOnly: true,
+      secure: true,
+      sameSite: "none",
+    });    return res.status(200).json({ message: "Access token refreshed!" });
   } catch (error) {
     console.error(error);
     return res.status(403).json({ message: "Invalid or expired refresh token!" });
@@ -168,8 +166,8 @@ module.exports.google = async (req, res) => {
       const { password: pass, ...rest } = user._doc;
       res.cookie("access_token", generateJWT(user), { 
         httpOnly: true,                   
-        secure: process.env.NODE_ENV === "production",            
-        sameSite: "strict",                   
+        secure: true,            
+        sameSite: "none",                   
       }).status(200).json(rest);
     }
     else {
@@ -189,8 +187,8 @@ module.exports.google = async (req, res) => {
       const { password: pass, ...rest } = newUser._doc;
       res.cookie("access_token", generateJWT(newUser), { 
         httpOnly: true,                   
-        secure: process.env.NODE_ENV === "production",            
-        sameSite: "strict",                   
+        secure: true,            
+        sameSite: "none",                   
       }).status(200).json(rest);
     }
   } catch (error) {
@@ -329,7 +327,7 @@ module.exports.resetPassword = async (req, res) => {
 //< [GET] /api/auth/users/profile
 module.exports.getUserProfile = async (req, res) => {
   try {
-    const userId = req.user._id;
+    const userId = req.user.sub;  
 
     const user = await User.findById(userId)
       .select("-password")
@@ -347,4 +345,4 @@ module.exports.getUserProfile = async (req, res) => {
     console.error(error);
     return res.status(500).json({ message: "Server error while fetching user profile!" });
   }
-};
+}; 
