@@ -132,23 +132,31 @@ module.exports.logout = async (req, res) => {
 //< [POST] /api/auth/users/refresh-token
 module.exports.refreshAccessToken = async (req, res) => {
   try {
-    const refreshToken = req.cookies.refresh_token;
+    const refreshToken = req.cookies.refresh_token || req.body.refresh_token;
     if (!refreshToken) {
       return res.status(401).json({ message: "Refresh token missing or used!" });
     }
 
     const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET);
 
-    const newAccessToken = generateAccessToken({
-      id: decoded.sub,
-      username: decoded.username
-    });
+    // Fetch fresh user data to ensure we have correct _id format
+    const user = await User.findById(decoded.sub);
+    if (!user) {
+      return res.status(404).json({ message: "User not found!" });
+    }
+
+    const newAccessToken = generateAccessToken(user);
 
     res.cookie("access_token", newAccessToken, {
       httpOnly: true,
       secure: true,
       sameSite: "none",
-    });    return res.status(200).json({ message: "Access token refreshed!" });
+    });
+    
+    return res.status(200).json({ 
+      message: "Access token refreshed!",
+      accessToken: newAccessToken  // Also return token in body for SPA apps
+    });
   } catch (error) {
     console.error(error);
     return res.status(403).json({ message: "Invalid or expired refresh token!" });
