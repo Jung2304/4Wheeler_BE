@@ -42,46 +42,4 @@ router.post("/favorites/:carId", verifyToken, controller.addToFavorites);
  */
 router.delete("/favorites/:carId", verifyToken, controller.removeFromFavorites);
 
-//! Admin Routes (Protected)
-
-/**
- * Description: Get all cars including deleted (admin only)
- * Path: /admin/cars
- * Method: GET
- * Auth: Required (Admin)
- */
-router.get("/admin/cars", verifyAdmin, controller.getAllCars);
-
-/**
- * Description: Get specific car details by ID including deleted (admin only)
- * Path: /admin/cars/:id
- * Method: GET
- * Auth: Required (Admin)
- */
-router.get("/admin/cars/:id", verifyAdmin, controller.getCarDetailAdmin);
-
-/**
- * Description: Create a new car (admin only)
- * Path: /admin/cars/create
- * Method: POST
- * Auth: Required (Admin)
- */
-router.post("/admin/cars/create", verifyAdmin, controller.createCar);
-
-/**
- * Description: Update car details (admin only)
- * Path: /admin/cars/:id
- * Method: PUT
- * Auth: Required (Admin)
- */
-router.put("/admin/cars/:id", verifyAdmin, controller.updateCar);
-
-/**
- * Description: Delete car (soft delete) (admin only)
- * Path: /admin/cars/:id
- * Method: DELETE
- * Auth: Required (Admin)
- */
-router.delete("/admin/cars/:id", verifyAdmin, controller.deleteCar);
-
 module.exports = router;
