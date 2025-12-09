@@ -92,13 +92,13 @@ module.exports.login = async (req, res) => {
         res
         .cookie("access_token", generateAccessToken(validUser), { 
           httpOnly: true,                   // Hide cookie from JS
-          secure: process.env.NODE_ENV === "production",            // Only HTTPS sends cookies
-          sameSite: "strict",                   // Block cross-site cookie sending
+          secure: true,            // Only HTTPS sends cookies
+          sameSite: "none",                   // Allow cross-site cookie sending
         })
         .cookie("refresh_token", generateRefreshToken(validUser), {
           httpOnly: true,                   
-          secure: process.env.NODE_ENV === "production",            
-          sameSite: "strict", 
+          secure: true,            
+          sameSite: "none", 
         }).status(200).json(rest);
       }
     }
@@ -113,13 +113,13 @@ module.exports.logout = async (req, res) => {
   try {
     res.clearCookie("access_token", {
       httpOnly: true,                   
-      secure: process.env.NODE_ENV === "production",            
-      sameSite: "strict", 
+      secure: true,            
+      sameSite: "none", 
     });
     res.clearCookie("refresh_token", {
       httpOnly: true,                   
-      secure: process.env.NODE_ENV === "production",            
-      sameSite: "strict", 
+      secure: true,            
+      sameSite: "none", 
     });
 
     return res.status(200).json({ message: "Logged out successfully!" });
