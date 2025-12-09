@@ -6,11 +6,11 @@ info:
     API documentation for the 4Wheeler Website.
     This project provides the backend services for managing vehicles for a car dealership, 
     helping customers to have a better look before deciding to go to the store and make a purchase.
-    The application offers features such as user authentication, search and sort based on criteria functionality, and real-time chat with the store.
+    The application offers features such as user authentication, search and sort based on criteria functionality.
     The application is built with scalability, security, and modern REST API design principles in mind.
     Some useful links:
     - [The 4Wheeler_BE repository](https://github.com/Jung2304/4Wheeler_BE)
-    - [The source API documentation for the 4Wheeler]()
+    - [The source API documentation for the 4Wheeler](https://github.com/Jung2304/4Wheeler_BE/blob/main/Backend/src/4Wheeler-swagger.yaml)
   contact:
     email: 23520333@gm.uit.edu.vn
 servers:
