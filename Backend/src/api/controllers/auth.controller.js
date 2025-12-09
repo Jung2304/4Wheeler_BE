@@ -174,11 +174,26 @@ module.exports.google = async (req, res) => {
 
     if (user) {
       const { password: pass, ...rest } = user._doc;
-      res.cookie("access_token", generateJWT(user), { 
+      
+      const accessToken = generateAccessToken(user);
+      const refreshToken = generateRefreshToken(user);
+      
+      res.cookie("access_token", accessToken, { 
         httpOnly: true,                   
         secure: true,            
         sameSite: "none",                   
-      }).status(200).json(rest);
+      })
+      .cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      })
+      .status(200).json({ 
+        message: "Login successful!",
+        user: rest,
+        accessToken,
+        refreshToken
+      });
     }
     else {
       // Since in User model, password is required, so we generate a password for newly-created User (can be changed later by user)
@@ -195,11 +210,26 @@ module.exports.google = async (req, res) => {
       await newUser.save();
 
       const { password: pass, ...rest } = newUser._doc;
-      res.cookie("access_token", generateJWT(newUser), { 
+      
+      const accessToken = generateAccessToken(newUser);
+      const refreshToken = generateRefreshToken(newUser);
+      
+      res.cookie("access_token", accessToken, { 
         httpOnly: true,                   
         secure: true,            
         sameSite: "none",                   
-      }).status(200).json(rest);
+      })
+      .cookie("refresh_token", refreshToken, {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+      })
+      .status(201).json({ 
+        message: "User created and logged in successfully!",
+        user: rest,
+        accessToken,
+        refreshToken
+      });
     }
   } catch (error) {
     console.error(error);
