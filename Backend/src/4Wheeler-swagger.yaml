@@ -758,13 +758,6 @@ paths:
           schema:
             type: string
             example: "SUV"
-        - name: status
-          in: query
-          description: Filter by car status
-          required: false
-          schema:
-            type: string
-            example: "available"
       responses:
         '200':
           description: List of cars retrieved successfully
@@ -1016,13 +1009,6 @@ paths:
           schema:
             type: string
             example: "SUV"
-        - name: status
-          in: query
-          description: Filter by car status
-          required: false
-          schema:
-            type: string
-            example: "available"
       responses:
         '200':
           description: List of all cars retrieved successfully
