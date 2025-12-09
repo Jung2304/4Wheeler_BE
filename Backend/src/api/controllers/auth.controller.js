@@ -43,11 +43,13 @@ module.exports.register = async (req, res) => {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        path: "/",
       });
       res.cookie("refresh_token", refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        path: "/",
       });
 
       const { password: pass, ...rest } = newUser._doc;
@@ -94,11 +96,13 @@ module.exports.login = async (req, res) => {
           httpOnly: true,                   // Hide cookie from JS
           secure: true,            // Only HTTPS sends cookies
           sameSite: "none",                   // Allow cross-site cookie sending
+          path: "/",
         })
         .cookie("refresh_token", generateRefreshToken(validUser), {
           httpOnly: true,                   
           secure: true,            
-          sameSite: "none", 
+          sameSite: "none",
+          path: "/", 
         }).status(200).json(rest);
       }
     }
@@ -114,12 +118,14 @@ module.exports.logout = async (req, res) => {
     res.clearCookie("access_token", {
       httpOnly: true,                   
       secure: true,            
-      sameSite: "none", 
+      sameSite: "none",
+      path: "/",
     });
     res.clearCookie("refresh_token", {
       httpOnly: true,                   
       secure: true,            
-      sameSite: "none", 
+      sameSite: "none",
+      path: "/", 
     });
 
     return res.status(200).json({ message: "Logged out successfully!" });
@@ -153,6 +159,7 @@ module.exports.refreshAccessToken = async (req, res) => {
       httpOnly: true,
       secure: true,
       sameSite: "none",
+      path: "/",
     });
     
     return res.status(200).json({ 
@@ -181,12 +188,14 @@ module.exports.google = async (req, res) => {
       res.cookie("access_token", accessToken, { 
         httpOnly: true,                   
         secure: true,            
-        sameSite: "none",                   
+        sameSite: "none",
+        path: "/",
       })
       .cookie("refresh_token", refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        path: "/",
       })
       .status(200).json({ 
         message: "Login successful!",
@@ -217,12 +226,14 @@ module.exports.google = async (req, res) => {
       res.cookie("access_token", accessToken, { 
         httpOnly: true,                   
         secure: true,            
-        sameSite: "none",                   
+        sameSite: "none",
+        path: "/",
       })
       .cookie("refresh_token", refreshToken, {
         httpOnly: true,
         secure: true,
         sameSite: "none",
+        path: "/",
       })
       .status(201).json({ 
         message: "User created and logged in successfully!",
