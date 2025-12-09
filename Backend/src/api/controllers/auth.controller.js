@@ -270,11 +270,61 @@ module.exports.forgotPassword = async (req, res) => {
     await forgotPassword.save();
 
     //> Send OTP through email
-    const subject = "OTP code to verify password recovery";
+    const subject = "Password Reset Request - 4Wheeler";
     const html = `
-      The OTP code to retrieve your password is: <b>${otp}</b> (Valid for a period of <b>${minutesExpire}</b> minutes).
-      Please do not share this OTP code with anyone.
-    `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+        <div style="background: linear-gradient(135deg, #2563eb 0%, #1e40af 100%); padding: 30px; text-align: center; border-radius: 8px 8px 0 0;">
+          <h1 style="color: #ffffff; margin: 0; font-size: 28px;">🔐 Password Reset</h1>
+        </div>
+        
+        <div style="padding: 40px 30px; background-color: #f9fafb; border-radius: 0 0 8px 8px;">
+          <p style="color: #1f2937; font-size: 16px; margin-bottom: 20px;">Hello,</p>
+          
+          <p style="color: #4b5563; font-size: 15px; line-height: 1.6;">
+            We received a request to reset your password for your 4Wheeler account. 
+            Use the verification code below to proceed with resetting your password.
+          </p>
+          
+          <div style="background-color: #ffffff; border: 2px dashed #2563eb; border-radius: 8px; padding: 25px; text-align: center; margin: 30px 0;">
+            <p style="color: #6b7280; font-size: 14px; margin: 0 0 10px 0; text-transform: uppercase; letter-spacing: 1px;">Your OTP Code</p>
+            <p style="font-size: 36px; font-weight: bold; color: #2563eb; letter-spacing: 8px; margin: 0; font-family: 'Courier New', monospace;">
+              ${otp}
+            </p>
+          </div>
+          
+          <div style="background-color: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 25px 0; border-radius: 4px;">
+            <p style="margin: 0; color: #92400e; font-size: 14px;">
+              <strong>⚠️ Security Notice:</strong>
+            </p>
+            <ul style="margin: 10px 0 0 0; padding-left: 20px; color: #92400e; font-size: 14px;">
+              <li>This code is valid for <strong>${minutesExpire} minutes</strong> only</li>
+              <li>Never share this code with anyone</li>
+              <li>4Wheeler staff will never ask for your OTP</li>
+            </ul>
+          </div>
+          
+          <p style="color: #4b5563; font-size: 14px; line-height: 1.6; margin-top: 25px;">
+            If you didn't request a password reset, please ignore this email or contact our support team if you have concerns about your account security.
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+          
+          <p style="color: #6b7280; font-size: 14px; margin: 20px 0 0 0;">
+            Best regards,<br>
+            <strong style="color: #2563eb;">The 4Wheeler Team</strong>
+          </p>
+        </div>
+        
+        <div style="text-align: center; padding: 20px; background-color: #f3f4f6; border-radius: 0 0 8px 8px;">
+          <p style="color: #9ca3af; font-size: 12px; margin: 0;">
+            This is an automated message. Please do not reply to this email.
+          </p>
+          <p style="color: #9ca3af; font-size: 12px; margin: 5px 0 0 0;">
+            © 2025 4Wheeler. All rights reserved.
+          </p>
+        </div>
+      </div>
+    `;
     sendMailHelper.sendMail(email, subject, html);
 
     return res.status(200).json({ message: "OTP code sent via email!" });  

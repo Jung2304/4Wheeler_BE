@@ -42,4 +42,13 @@ router.post("/favorites/:carId", verifyToken, controller.addToFavorites);
  */
 router.delete("/favorites/:carId", verifyToken, controller.removeFromFavorites);
 
+/**
+ * Description: Book a test drive for a specific car
+ * Path: /test-drive/:carId
+ * Method: POST
+ * Auth: Required
+ * Body: { name, phone, preferredDate?, message? }
+ */
+router.post("/test-drive/:carId", verifyToken, controller.bookTestDrive);
+
 module.exports = router;

@@ -974,6 +974,107 @@ paths:
       security:
         - BearerAuth: []
 
+  /api/cars/test-drive/{carId}:
+    post:
+      tags:
+        - cars
+      summary: Book a test drive for a specific car
+      operationId: bookTestDrive
+      description: Allows authenticated users to book a test drive. Email is automatically filled from the user's JWT token. A confirmation email is sent with booking details. Test drive is scheduled 2 days from booking date.
+      parameters:
+        - name: carId
+          in: path
+          description: The unique ID of the car to book test drive for
+          required: true
+          schema:
+            type: string
+            example: "65320a8c32f4e1b2c3d4e5f6"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - phone
+              properties:
+                name:
+                  type: string
+                  description: Full name of the person booking the test drive
+                  example: "John Doe"
+                phone:
+                  type: string
+                  description: Contact phone number
+                  example: "+1234567890"
+                preferredDate:
+                  type: string
+                  format: date
+                  description: Preferred test drive date (optional)
+                  example: "2025-12-15"
+                message:
+                  type: string
+                  description: Additional message or special requests (optional)
+                  example: "I'm interested in the premium package"
+      responses:
+        '201':
+          description: Test drive booked successfully and confirmation email sent
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Test drive booked successfully! Confirmation email sent."
+                  booking:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        example: "65f7b8c9d2e3a4f5b6c7d8e9"
+                      carName:
+                        type: string
+                        example: "BMW X5"
+                      testDriveDate:
+                        type: string
+                        example: "Wednesday, December 11, 2025"
+                      email:
+                        type: string
+                        example: "user@example.com"
+        '400':
+          description: Missing required fields (name or phone)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Name and phone number are required!"
+        '404':
+          description: User or car not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Car not found!"
+        '500':
+          description: Server error while booking test drive
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to book test drive!"
+      security:
+        - BearerAuth: []
+
   /api/admin/cars:
     get:
       tags:
