@@ -17,7 +17,7 @@ router.post("/compare-cars", async (req, res) => {
       return res.status(500).json({ message: "Gemini API key not configured!" });
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`;
     console.log("🔍 Calling Gemini API...");
 
     const response = await fetch(
