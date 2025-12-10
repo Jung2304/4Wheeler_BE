@@ -336,7 +336,19 @@ module.exports.forgotPassword = async (req, res) => {
         </div>
       </div>
     `;
-    sendMailHelper.sendMail(email, subject, html);
+    
+    // Send OTP email with error handling
+    try {
+      await sendMailHelper.sendMail(email, subject, html);
+      console.log(`✅ OTP email sent to ${email}`);
+    } catch (emailError) {
+      console.error("❌ Failed to send OTP email:", emailError.message);
+      // Clean up the OTP record if email fails
+      await ForgotPassword.deleteOne({ email });
+      return res.status(500).json({ 
+        message: "Failed to send OTP email. Please check your email configuration." 
+      });
+    }
 
     return res.status(200).json({ message: "OTP code sent via email!" });  
   } catch (error) {

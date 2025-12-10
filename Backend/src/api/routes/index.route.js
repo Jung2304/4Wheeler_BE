@@ -1,6 +1,7 @@
 const authRouter = require("./auth.route.js");
 const carsRouter = require("./cars.route.js");
 const adminRouter = require("./admin.route.js");
+const geminiRouter = require("./gemini.route.js");
 
 module.exports = (app) => {
   app.get("/", (req, res) => {
@@ -10,5 +11,6 @@ module.exports = (app) => {
   app.use("/api/auth", authRouter);
   app.use("/api/cars", carsRouter);
   app.use("/api/admin", adminRouter);
+  app.use("/api/gemini", geminiRouter);
 
 };

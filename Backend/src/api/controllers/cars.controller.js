@@ -429,7 +429,24 @@ module.exports.bookTestDrive = async (req, res) => {
       </div>
     `;
 
-    await sendMailHelper.sendMail(user.email, subject, html);
+    // Send confirmation email with error handling
+    try {
+      await sendMailHelper.sendMail(user.email, subject, html);
+      console.log(`✅ Test drive confirmation email sent to ${user.email}`);
+    } catch (emailError) {
+      console.error("❌ Failed to send confirmation email:", emailError.message);
+      // Still return success for booking, but notify about email issue
+      return res.status(201).json({
+        message: "Test drive booked successfully! However, confirmation email failed to send. Please check your email settings.",
+        booking: {
+          id: testDrive._id,
+          carName: `${car.make} ${car.model}`,
+          testDriveDate: formattedDate,
+          email: user.email
+        },
+        emailSent: false
+      });
+    }
 
     return res.status(201).json({
       message: "Test drive booked successfully! Confirmation email sent.",
@@ -438,7 +455,8 @@ module.exports.bookTestDrive = async (req, res) => {
         carName: `${car.make} ${car.model}`,
         testDriveDate: formattedDate,
         email: user.email
-      }
+      },
+      emailSent: true
     });
   } catch (error) {
     console.error(error);

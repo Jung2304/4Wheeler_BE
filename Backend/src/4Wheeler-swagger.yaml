@@ -24,7 +24,9 @@ tags:
   - name: cars 
     description: Endpoints for retrieving car information, and showroom details. 
   - name: admin
-    description: Admin only endpoints for managing cars 
+    description: Admin only endpoints for managing cars
+  - name: gemini
+    description: AI-powered car comparison using Google Gemini API 
 paths:
   /api/auth/users/register:
     post:
@@ -1074,6 +1076,148 @@ paths:
                     example: "Failed to book test drive!"
       security:
         - BearerAuth: []
+
+  /api/gemini/compare-cars:
+    post:
+      tags:
+        - gemini
+      summary: Compare two cars using AI (Google Gemini)
+      operationId: compareCars
+      description: |
+        Uses Google Gemini AI to compare two cars based on performance, fuel/energy efficiency, 
+        pricing, practicality, safety, and technology features. Returns a concise comparison 
+        analysis in under 200 words. The API key is securely stored on the backend.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - carA
+                - carB
+              properties:
+                carA:
+                  type: object
+                  description: First car details for comparison
+                  properties:
+                    make:
+                      type: string
+                      example: "BMW"
+                    model:
+                      type: string
+                      example: "X5"
+                    year:
+                      type: number
+                      example: 2024
+                    price:
+                      type: number
+                      example: 65000
+                    engine:
+                      type: string
+                      example: "3.0L Inline-6 Turbo"
+                    horsepower:
+                      type: number
+                      example: 335
+                    fuelType:
+                      type: string
+                      example: "Gasoline"
+                    transmission:
+                      type: string
+                      example: "Automatic"
+                    seats:
+                      type: number
+                      example: 5
+                carB:
+                  type: object
+                  description: Second car details for comparison
+                  properties:
+                    make:
+                      type: string
+                      example: "Audi"
+                    model:
+                      type: string
+                      example: "Q7"
+                    year:
+                      type: number
+                      example: 2024
+                    price:
+                      type: number
+                      example: 60000
+                    engine:
+                      type: string
+                      example: "3.0L V6 Turbo"
+                    horsepower:
+                      type: number
+                      example: 335
+                    fuelType:
+                      type: string
+                      example: "Gasoline"
+                    transmission:
+                      type: string
+                      example: "Automatic"
+                    seats:
+                      type: number
+                      example: 7
+      responses:
+        '200':
+          description: AI-generated comparison result
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  candidates:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        content:
+                          type: object
+                          properties:
+                            parts:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  text:
+                                    type: string
+                                    example: "The BMW X5 and Audi Q7 are both premium midsize SUVs with similar performance (335 HP each). The X5 offers a sportier driving experience with its inline-6 engine, while the Q7 provides more practicality with 7 seats vs 5. Both feature advanced safety tech and luxury interiors. The Q7 is $5,000 cheaper and more family-oriented, while the X5 appeals to driving enthusiasts. Fuel efficiency is comparable. Choose X5 for performance, Q7 for versatility."
+                        finishReason:
+                          type: string
+                          example: "STOP"
+                  usageMetadata:
+                    type: object
+                    properties:
+                      promptTokenCount:
+                        type: integer
+                        example: 150
+                      candidatesTokenCount:
+                        type: integer
+                        example: 120
+                      totalTokenCount:
+                        type: integer
+                        example: 270
+        '400':
+          description: Missing required car data
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Both carA and carB are required"
+        '500':
+          description: Gemini API error or server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Failed to compare cars"
 
   /api/admin/cars:
     get:
