@@ -2,6 +2,58 @@
 const express = require("express");
 const router = express.Router();
 
+//< [GET] /api/gemini/models - List available models
+router.get("/models", async (req, res) => {
+  try {
+    const geminiKey = process.env.GEMINI_API_KEY;
+    
+    if (!geminiKey) {
+      return res.status(500).json({ message: "Gemini API key not configured!" });
+    }
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models?key=${geminiKey}`,
+      {
+        method: "GET",
+        headers: { "Content-Type": "application/json" }
+      }
+    );
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("Failed to list models:", errorText);
+      return res.status(response.status).json({ 
+        message: "Failed to list models",
+        error: errorText.substring(0, 500)
+      });
+    }
+
+    const data = await response.json();
+    
+    // Filter only models that support generateContent
+    const generateContentModels = data.models?.filter(model => 
+      model.supportedGenerationMethods?.includes("generateContent")
+    ) || [];
+
+    return res.json({
+      total: data.models?.length || 0,
+      generateContentModels: generateContentModels.map(m => ({
+        name: m.name,
+        displayName: m.displayName,
+        description: m.description,
+        supportedMethods: m.supportedGenerationMethods
+      })),
+      allModels: data.models
+    });
+  } catch (err) {
+    console.error("Error listing models:", err);
+    return res.status(500).json({ 
+      message: "Failed to list models",
+      error: err.message 
+    });
+  }
+});
+
 //< [POST] /api/gemini/compare-cars
 router.post("/compare-cars", async (req, res) => {
   try {
@@ -17,7 +69,7 @@ router.post("/compare-cars", async (req, res) => {
       return res.status(500).json({ message: "Gemini API key not configured!" });
     }
 
-    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiKey}`;
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${geminiKey}`;
     console.log("🔍 Calling Gemini API...");
 
     const response = await fetch(
