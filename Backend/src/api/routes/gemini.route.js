@@ -17,8 +17,11 @@ router.post("/compare-cars", async (req, res) => {
       return res.status(500).json({ message: "Gemini API key not configured!" });
     }
 
+    const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`;
+    console.log("🔍 Calling Gemini API...");
+
     const response = await fetch(
-      `https://generative.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${geminiKey}`,
+      apiUrl,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -42,11 +45,22 @@ Car B: ${JSON.stringify(carB, null, 2)}`,
     );
 
     if (!response.ok) {
-      const errorData = await response.json();
-      console.error("Gemini API error:", errorData);
+      // Get response as text first to handle HTML error pages
+      const errorText = await response.text();
+      console.error("Gemini API error response:", errorText);
+      
+      // Try to parse as JSON if possible
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { error: errorText.substring(0, 500) }; // Truncate HTML
+      }
+      
       return res.status(response.status).json({ 
         message: "Failed to get response from Gemini", 
-        error: errorData 
+        error: errorData,
+        statusCode: response.status
       });
     }
 
