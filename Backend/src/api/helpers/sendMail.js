@@ -2,16 +2,19 @@ const nodemailer = require("nodemailer");
 
 module.exports.sendMail = async (email, subject, html) => {
   try {
+    // Use SendGrid for production, Gmail for local development
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: process.env.SMTP_HOST || "smtp.sendgrid.net",
+      port: process.env.SMTP_PORT || 587,
+      secure: false, // Use TLS
       auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
+        user: process.env.SMTP_USER || "apikey", // SendGrid uses "apikey" as username
+        pass: process.env.SMTP_PASS || process.env.SENDGRID_API_KEY
       }
     });
 
     const mailOptions = {
-      from: process.env.EMAIL_USER,
+      from: process.env.EMAIL_FROM || "noreply@4wheeler.com",
       to: email,
       subject: subject,
       html: html
